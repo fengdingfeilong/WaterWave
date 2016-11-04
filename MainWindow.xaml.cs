@@ -24,19 +24,18 @@ namespace WaterWave
         }
 
         //获取圆心为(0,0)半径为r的圆上点的偏移，算法为： a= amplitude*sin(2pi*r/cycle) , 折射偏移为, offset = a*sinθ1/sinθ2*sin(θ2-θ1)，sinθ1 = a/amplitude，水到空气折射关系sinθ1/sinθ2=3/4
-        private double GetOffsetOnCycle(double r, double amplitude, double cycle)
+        private double GetOffsetOnCycle(double r, double amplitude, double cycle, int waterdepth)
         {
-            double sino1 = Math.Cos(Math.PI * 2 * r / cycle);
-            //double k = Math.Cos(Math.PI * 2 * r / cycle);  // double k = amplitude * Math.PI * 2 / cycle * Math.Cos(Math.PI * 2 * r / cycle); 因为振幅与周期之间的关系不好确定，这里直接用 1.414* Math.Cos(Math.PI * 2 * r / cycle) 模拟
-            //double sino1 = Math.Abs(k) / Math.Sqrt(k * k + 1);
+            double k = amplitude * Math.PI * 2 / cycle * Math.Cos(Math.PI * 2 * r / cycle);
+            double sino1 = Math.Abs(k) / Math.Sqrt(k * k + 1);
             double coso1 = Math.Sqrt(1 - sino1 * sino1);
             double sino2 = sino1 * 4 / 3;
             if (sino2 >= 1 || sino2 <= -1) return 0;
             double coso2 = Math.Sqrt(1 - sino2 * sino2);
             double tr = r % cycle;//abs(o1)<abs(o2)<90度，所以o1、o2肯定在同一象限
-            double a = amplitude * Math.Sin(Math.PI * 2 * r / cycle);
+            double a = (waterdepth + amplitude) * Math.Sin(Math.PI * 2 * r / cycle);
             double offset = Math.Abs(a * 3 / 4 * (sino2 * coso1 - sino1 * coso2));
-            if (tr > 0 && tr < cycle / 4 || tr > cycle / 2 && tr < cycle * 3 / 4)//一三象限，offset为负（扩散方向沿着正弦坡度向两边扩散）
+            if (tr > 0 && tr < cycle / 4 || tr > cycle * 3 / 4 && tr < cycle)//一四象限，offset为负
                 offset = -offset;
             return offset;
         }
@@ -56,14 +55,14 @@ namespace WaterWave
         /// <param name="centerx">水纹中心x</param>
         /// <param name="centery">水纹中心y</param>
         /// <param name="amplitude">波动振幅</param>
-        /// <param name="cycle">波动周期</param>
+        /// <param name="cycle">波动周期，标准正弦曲线通常为 cycle = 2pi*amplitude，可以以此为参考值</param>
         /// <param name="stopRadius">水纹的最大扩散范围半径</param>
-        private void Wave(byte[] pixelbuffer, int pixelwidth, int pixelheight, int centerx, int centery, int amplitude, int cycle, int stopRadius)
+        /// <param name="waterdepth">水深，通常大于amplitude，值越大像素偏移越大</param>
+        private void Wave(byte[] pixelbuffer, int pixelwidth, int pixelheight, int centerx, int centery, int amplitude, int cycle, int stopRadius, int waterdepth)
         {
-            int minamplitude = 32;
             for (int r = 1; r <= stopRadius; r++)
             {
-                double offset = GetOffsetOnCycle(r, amplitude, cycle);
+                double offset = GetOffsetOnCycle(r, amplitude, cycle, waterdepth);
                 if (Math.Abs((int)offset) < 1) continue;
                 Point[] points = new Point[20 * (2 * r + 1)];
                 int c = 0;
@@ -121,12 +120,12 @@ namespace WaterWave
 
                 if (r % cycle == 0)//每经历一个周期振幅衰减一次
                 {
-                    if (amplitude > 32)
-                        amplitude -= amplitude >> 5;//振幅衰减
+                    if (amplitude > 16)
+                        amplitude -= amplitude >> 4;//振幅衰减
                     else
                         amplitude--;
                 }
-                if (amplitude < minamplitude) break;
+                if (amplitude < 4) break;
             }
         }
 
@@ -140,17 +139,18 @@ namespace WaterWave
 
             Stopwatch watch = new Stopwatch();
             watch.Start();
-            
-            int amplitude = 128, cycle = 32;
+
+            int amplitude = 10, cycle = 32;//cycle至少大于amplitude，否则能发生偏移的点会很少
+            int waterdepth = amplitude+50;//水深一般大于amplitude
             int centerx = source.PixelWidth / 2, centery = source.PixelHeight / 2;
             int maxLen = (int)Math.Sqrt(Math.Pow(source.PixelWidth, 2) + Math.Pow(source.PixelHeight, 2)) / 2;
-            Wave(buffer, source.PixelWidth, source.PixelHeight, centerx, centery, amplitude, cycle, maxLen);
+            Wave(buffer, source.PixelWidth, source.PixelHeight, centerx, centery, amplitude, cycle, maxLen, waterdepth);
 
             var destionation = BitmapImage.Create(source.PixelWidth, source.PixelHeight, source.DpiX, source.DpiY, source.Format, source.Palette, buffer, stride);
             Image_Destination.Source = destionation;
 
             Text_CostTime.Text = "耗时：" + watch.ElapsedMilliseconds + "ms";
         }
-        
+
     }
 }
