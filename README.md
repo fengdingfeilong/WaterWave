@@ -1,4 +1,4 @@
 # WaterWave
-a beautiful 2d water wave
+simulate a real water wave
 
 ![waterwave](waterwave.jpg)
