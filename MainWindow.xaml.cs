@@ -140,12 +140,17 @@ namespace WaterWave
             Stopwatch watch = new Stopwatch();
             watch.Start();
 
-            int amplitude = 10, cycle = 32;//cycle至少大于amplitude，否则能发生偏移的点会很少
-            int waterdepth = amplitude+50;//水深一般大于amplitude
+            int amplitude = 32, cycle = 64;//cycle至少大于amplitude，否则能发生偏移的点会很少
+            int waterdepth = amplitude+64;//水深一般大于amplitude
             int centerx = source.PixelWidth / 2, centery = source.PixelHeight / 2;
             int maxLen = (int)Math.Sqrt(Math.Pow(source.PixelWidth, 2) + Math.Pow(source.PixelHeight, 2)) / 2;
             Wave(buffer, source.PixelWidth, source.PixelHeight, centerx, centery, amplitude, cycle, maxLen, waterdepth);
-
+            int i = 1;// 在周围增加四个波源
+            Wave(buffer, source.PixelWidth, source.PixelHeight, centerx - i, centery, amplitude, cycle, maxLen, waterdepth);
+            Wave(buffer, source.PixelWidth, source.PixelHeight, centerx, centery - i, amplitude, cycle, maxLen, waterdepth);
+            Wave(buffer, source.PixelWidth, source.PixelHeight, centerx + i, centery, amplitude, cycle, maxLen, waterdepth);
+            Wave(buffer, source.PixelWidth, source.PixelHeight, centerx, centery + i, amplitude, cycle, maxLen, waterdepth);
+            
             var destionation = BitmapImage.Create(source.PixelWidth, source.PixelHeight, source.DpiX, source.DpiY, source.Format, source.Palette, buffer, stride);
             Image_Destination.Source = destionation;
 
