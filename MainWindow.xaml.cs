@@ -146,10 +146,10 @@ namespace WaterWave
             int maxLen = (int)Math.Sqrt(Math.Pow(source.PixelWidth, 2) + Math.Pow(source.PixelHeight, 2)) / 2;
             Wave(buffer, source.PixelWidth, source.PixelHeight, centerx, centery, amplitude, cycle, maxLen, waterdepth);
             int i = 1;// 在周围增加四个波源
-            Wave(buffer, source.PixelWidth, source.PixelHeight, centerx - i, centery, amplitude, cycle, maxLen, waterdepth);
-            Wave(buffer, source.PixelWidth, source.PixelHeight, centerx, centery - i, amplitude, cycle, maxLen, waterdepth);
-            Wave(buffer, source.PixelWidth, source.PixelHeight, centerx + i, centery, amplitude, cycle, maxLen, waterdepth);
-            Wave(buffer, source.PixelWidth, source.PixelHeight, centerx, centery + i, amplitude, cycle, maxLen, waterdepth);
+            Wave(buffer, source.PixelWidth, source.PixelHeight, centerx - i, centery, amplitude / 2, cycle / 2, maxLen, waterdepth);
+            Wave(buffer, source.PixelWidth, source.PixelHeight, centerx, centery - i, amplitude / 2, cycle / 2, maxLen, waterdepth);
+            Wave(buffer, source.PixelWidth, source.PixelHeight, centerx + i, centery, amplitude / 2, cycle / 2, maxLen, waterdepth);
+            Wave(buffer, source.PixelWidth, source.PixelHeight, centerx, centery + i, amplitude / 2, cycle / 2, maxLen, waterdepth);
             
             var destionation = BitmapImage.Create(source.PixelWidth, source.PixelHeight, source.DpiX, source.DpiY, source.Format, source.Palette, buffer, stride);
             Image_Destination.Source = destionation;
