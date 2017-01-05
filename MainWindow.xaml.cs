@@ -133,7 +133,7 @@ namespace WaterWave
         {
             var source = Image_Source.Source as BitmapSource;
             int stride = source.PixelWidth * source.Format.BitsPerPixel / 8;
-            if (stride % 4 != 0) stride = (stride / 4 + 1) * 4;
+            if (stride % 4 != 0) stride = (stride / 4 + 1) * 4;//(跨度即每行的字节数，应该为4的整数倍)
             byte[] buffer = new byte[source.PixelHeight * stride];
             source.CopyPixels(buffer, stride, 0);
 
